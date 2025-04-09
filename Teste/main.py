@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from typing import Optional
 import pandas as pd
 from datetime import date
+import requests
 
 # Conexão com o banco e modelos
 from database import SessionLocal, engine
@@ -85,7 +86,7 @@ def deletar_todos(db: Session = Depends(get_db)):
     db.commit()
     return {"mensagem": f"{total} participante(s) foram deletados da base de dados."}
 
-# Endpoint: Webhook que calcula a idade e retorna
+# Endpoint: Webhook que calcula a idade, envia à Wayv e retorna
 @app.post("/webhook/")
 def receber_webhook(payload: dict):
     data_nascimento = payload.get("data_nascimento")
@@ -101,4 +102,52 @@ def receber_webhook(payload: dict):
     except:
         return {"erro": "Data de nascimento inválida"}
 
-    return {"form_id": form_id, "idade": idade}
+    token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb21wYW55X2lkIjoiNjY0Mjc0OTc3ZmM4YmEwNTMzMmQyZjBjIiwiY3VycmVudF90aW1lIjoxNzMzNDMwMzg3NDcxLCJleHAiOjIwNDg5NjMxODd9.9kdeolnmsr2zRUeZQoOqL_FOppMAqFoC1zJqbo4769M"
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": f"Bearer {token}"
+    }
+
+    payload_envio = {
+        "form_id": form_id,
+        "fields": {
+            "idade": idade 
+        }
+    }
+
+    try:
+        response = requests.post("https://app.way-v.com/api/integration/checklists", json=payload_envio, headers=headers)
+        if response.status_code == 200:
+            return {"form_id": form_id, "idade": idade, "status": "Enviado com sucesso"}
+        else:
+            return {
+                "form_id": form_id,
+                "idade": idade,
+                "status": "Erro ao enviar",
+                "detalhes": response.text
+            }
+    except Exception as e:
+        return {"erro": f"Falha ao tentar enviar dados: {str(e)}"}
+
+# Novo endpoint para visualizar os campos reais do formulário Wayv
+@app.get("/formulario/{form_id}")
+def ver_formulario(form_id: str):
+    token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb21wYW55X2lkIjoiNjY0Mjc0OTc3ZmM4YmEwNTMzMmQyZjBjIiwiY3VycmVudF90aW1lIjoxNzMzNDMwMzg3NDcxLCJleHAiOjIwNDg5NjMxODd9.9kdeolnmsr2zRUeZQoOqL_FOppMAqFoC1zJqbo4769M"
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": f"Bearer {token}"
+    }
+
+    params = {
+        "template_id": form_id
+    }
+
+    response = requests.get(
+        "https://app.way-v.com/api/integration/flat_form_entries",
+        headers=headers,
+        params=params
+    )
+
+    return response.json()

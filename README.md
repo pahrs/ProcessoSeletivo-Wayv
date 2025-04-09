@@ -2,17 +2,16 @@
 
 Este projeto é uma API desenvolvida em Python utilizando o framework FastAPI. O objetivo é atender às etapas descritas em um desafio técnico de estágio, oferecendo um sistema para importação, listagem, atualização e exclusão de dados de participantes.
 
-A API também implementa um endpoint que simula o funcionamento de um webhook, realizando o cálculo de idade com base em uma data de nascimento recebida automaticamente.
+A API também implementa um endpoint que simula o funcionamento de um webhook, realizando o cálculo de idade com base em uma data de nascimento recebida automaticamente, e agora envia essas informações para a API da Wayv.
 
 ---
 
 ## Estrutura do Projeto
 
 ```
-Processo-Seletivo-Wayv/
+ProcessoSeletivo-Wayv/
 ├── Teste/
 │   ├── __pycache__/
-│   ├── dados.db
 │   ├── database.py
 │   ├── main.py
 │   └── models.py
@@ -30,6 +29,7 @@ Processo-Seletivo-Wayv/
 - SQLite
 - SQLAlchemy
 - Pandas
+- Requests
 
 ---
 
@@ -66,7 +66,6 @@ O arquivo `Cadastros.xlsx`, localizado na raiz do projeto, contém os dados dos 
 ## Endpoints disponíveis
 
 ### POST `/upload-excel/`
-
 Importa os dados da planilha Excel enviada. A planilha deve conter as seguintes colunas:
 
 - Nome completo
@@ -77,40 +76,27 @@ Importa os dados da planilha Excel enviada. A planilha deve conter as seguintes 
 
 O arquivo esperado deve ser do tipo `.xlsx`.
 
----
-
 ### GET `/participantes/`
-
 Retorna todos os participantes cadastrados no banco.
 
 Parâmetro opcional:
 - `sexo` → Filtra por sexo. Exemplo: `/participantes?sexo=Feminino`
 
----
-
 ### PUT `/participantes/{id}`
-
 Atualiza a data de nascimento de um participante com base no ID.
 
 Exemplo de corpo JSON:
-
 ```json
 {
   "nova_data": "2000-01-01"
 }
 ```
 
----
-
 ### DELETE `/participantes/`
-
 Remove todos os participantes da base de dados.
 
----
-
 ### POST `/webhook/`
-
-Simula o funcionamento de um webhook, recebendo dados automaticamente de um formulário externo. Calcula a idade com base na data de nascimento fornecida.
+Calcula a idade com base na data de nascimento recebida e envia os dados para a API da Wayv.
 
 Exemplo de entrada:
 ```json
@@ -124,7 +110,8 @@ Resposta:
 ```json
 {
   "form_id": "form123",
-  "idade": 25
+  "idade": 25,
+  "status": "Enviado com sucesso"
 }
 ```
 
