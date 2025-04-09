@@ -92,6 +92,10 @@ def receber_webhook(payload: dict):
     data_nascimento = payload.get("data_nascimento")
     form_id = payload.get("form_id")
 
+    # Adicionando template_id e execution_company_id
+    template_id = "679a0ab6c8825d82fe8273ff"  # Exemplo do template_id
+    execution_company_id = "664274977fc8ba05332d2f0c"  # Exemplo do execution_company_id
+
     if not data_nascimento or not form_id:
         return {"erro": "Campos obrigatórios: data_nascimento e form_id"}
 
@@ -111,6 +115,8 @@ def receber_webhook(payload: dict):
 
     payload_envio = {
         "form_id": form_id,
+        "template_id": template_id,  # Adicionando template_id
+        "execution_company_id": execution_company_id,  # Adicionando execution_company_id
         "fields": {
             "idade": idade 
         }
@@ -129,25 +135,3 @@ def receber_webhook(payload: dict):
             }
     except Exception as e:
         return {"erro": f"Falha ao tentar enviar dados: {str(e)}"}
-
-# Novo endpoint para visualizar os campos reais do formulário Wayv
-@app.get("/formulario/{form_id}")
-def ver_formulario(form_id: str):
-    token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb21wYW55X2lkIjoiNjY0Mjc0OTc3ZmM4YmEwNTMzMmQyZjBjIiwiY3VycmVudF90aW1lIjoxNzMzNDMwMzg3NDcxLCJleHAiOjIwNDg5NjMxODd9.9kdeolnmsr2zRUeZQoOqL_FOppMAqFoC1zJqbo4769M"
-    headers = {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization": f"Bearer {token}"
-    }
-
-    params = {
-        "template_id": form_id
-    }
-
-    response = requests.get(
-        "https://app.way-v.com/api/integration/flat_form_entries",
-        headers=headers,
-        params=params
-    )
-
-    return response.json()
